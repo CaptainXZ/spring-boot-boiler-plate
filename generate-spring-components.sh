@@ -1,151 +1,132 @@
 #!/bin/bash
 
-# Check if the correct number of arguments are provided
-if [ "$#" -ne 1 ]; then
-    echo "Usage: $0 <EntityName>"
-    exit 1
-fi
-
-ENTITY_NAME=$1
-PACKAGE="com.example.demo" # Adjust this to your base package
-DIRECTORY="src/main/java/com/example/demo" # Adjust this to your base directory
-
-# Create directories if they don't exist
-mkdir -p $DIRECTORY/controllers
-mkdir -p $DIRECTORY/services
-mkdir -p $DIRECTORY/repository
-mkdir -p $DIRECTORY/models
-
-# Generate Model
-cat <<EOL > $DIRECTORY/models/${ENTITY_NAME}.java
-package $PACKAGE.models;
-
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-
-@Entity
-public class ${ENTITY_NAME} {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    // Add your fields here
-    private String name;
-
-    // Getters and setters
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
+# Function to create a Java class file with given content
+create_file() {
+    local path=$1
+    local content=$2
+    echo "$content" > "$path"
+    echo "Created $path"
 }
-EOL
 
-# Generate Controller
-cat <<EOL > $DIRECTORY/controllers/${ENTITY_NAME}Controller.java
-package $PACKAGE.controllers;
+# Base directory for your project
+BASE_DIR="/Users/phatsopheak/Documents/Spring Boot/06-07-2024/Homework/src/main/java/com/example/demo"
 
-import org.springframework.beans.factory.annotation.Autowired;
+# Names of the folders
+FOLDERS=("controllers" "services" "repository" "models")
+
+# Lombok annotations for models
+LOMBOK_ANNOTATIONS=("Getter" "Setter")
+
+# Template for controller
+CONTROLLER_TEMPLATE=$(cat <<END
+package com.example.demo.controllers;
+
 import org.springframework.web.bind.annotation.*;
-import java.util.List;
-import $PACKAGE.services.${ENTITY_NAME}Service;
-import $PACKAGE.models.${ENTITY_NAME};
 
 @RestController
-@RequestMapping("/api/${ENTITY_NAME,,}s")
-public class ${ENTITY_NAME}Controller {
+@RequestMapping("/api/{name_lower}")
+public class {name}Controller {
 
-    @Autowired
-    private ${ENTITY_NAME}Service ${ENTITY_NAME,,}Service;
+    // Define your endpoints here
 
-    @GetMapping
-    public List<${ENTITY_NAME}> getAll() {
-        return ${ENTITY_NAME,,}Service.getAll();
-    }
-
-    @PostMapping
-    public ${ENTITY_NAME} create(@RequestBody ${ENTITY_NAME} ${ENTITY_NAME,,}) {
-        return ${ENTITY_NAME,,}Service.create(${ENTITY_NAME,,});
-    }
-
-    @GetMapping("/{id}")
-    public ${ENTITY_NAME} getById(@PathVariable Long id) {
-        return ${ENTITY_NAME,,}Service.getById(id);
-    }
-
-    @PutMapping("/{id}")
-    public ${ENTITY_NAME} update(@PathVariable Long id, @RequestBody ${ENTITY_NAME} ${ENTITY_NAME,,}) {
-        return ${ENTITY_NAME,,}Service.update(id, ${ENTITY_NAME,,});
-    }
-
-    @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id) {
-        ${ENTITY_NAME,,}Service.delete(id);
-    }
 }
-EOL
+END
+)
 
-# Generate Service
-cat <<EOL > $DIRECTORY/services/${ENTITY_NAME}Service.java
-package $PACKAGE.services;
+# Template for service
+SERVICE_TEMPLATE=$(cat <<END
+package com.yourcompany.yourproject.services;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import java.util.List;
-import $PACKAGE.repository.${ENTITY_NAME}Repository;
-import $PACKAGE.models.${ENTITY_NAME};
 
 @Service
-public class ${ENTITY_NAME}Service {
+public class {name}Service {
 
-    @Autowired
-    private ${ENTITY_NAME}Repository ${ENTITY_NAME,,}Repository;
+    // Define your service methods here
 
-    public List<${ENTITY_NAME}> getAll() {
-        return ${ENTITY_NAME,,}Repository.findAll();
-    }
-
-    public ${ENTITY_NAME} create(${ENTITY_NAME} ${ENTITY_NAME,,}) {
-        return ${ENTITY_NAME,,}Repository.save(${ENTITY_NAME,,});
-    }
-
-    public ${ENTITY_NAME} getById(Long id) {
-        return ${ENTITY_NAME,,}Repository.findById(id).orElse(null);
-    }
-
-    public ${ENTITY_NAME} update(Long id, ${ENTITY_NAME} ${ENTITY_NAME,,}) {
-        ${ENTITY_NAME,,}.setId(id);
-        return ${ENTITY_NAME,,}Repository.save(${ENTITY_NAME,,});
-    }
-
-    public void delete(Long id) {
-        ${ENTITY_NAME,,}Repository.deleteById(id);
-    }
 }
-EOL
+END
+)
 
-# Generate Repository
-cat <<EOL > $DIRECTORY/repository/${ENTITY_NAME}Repository.java
-package $PACKAGE.repository;
+# Template for repository
+REPOSITORY_TEMPLATE=$(cat <<END
+package com.yourcompany.yourproject.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import $PACKAGE.models.${ENTITY_NAME};
+import org.springframework.stereotype.Repository;
+import com.yourcompany.yourproject.models.{name};
 
-public interface ${ENTITY_NAME}Repository extends JpaRepository<${ENTITY_NAME}, String> {
+@Repository
+public interface {name}Repository extends JpaRepository<{name}, String> {
+
+    // Define your query methods here
+
 }
-EOL
+END
+)
 
-echo "Model, Controller, Service, and Repository for ${ENTITY_NAME} created successfully."
+# Template for model
+MODEL_TEMPLATE=$(cat <<END
+package com.yourcompany.yourproject.models;
+
+import lombok.Getter;
+import lombok.Setter;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import java.util.UUID;
+
+@Entity
+@Getter
+@Setter
+public class {name} {
+
+    @Id
+    private UUID id;
+
+    // Define your fields here
+
+}
+END
+)
+
+# Function to generate component
+generate_component() {
+    local name=$1
+    local name_capitalized="$(echo $name | awk '{print toupper(substr($0, 1, 1)) substr($0, 2)}')"
+    local name_lower="$(echo $name | awk '{print tolower($0)}')"
+
+    for folder in "${FOLDERS[@]}"; do
+        dir_path="$BASE_DIR/$folder"
+        mkdir -p "$dir_path"
+
+        case "$folder" in
+            "controllers")
+                content=$(echo "$CONTROLLER_TEMPLATE" | sed "s/{name}/$name_capitalized/g; s/{name_lower}/$name_lower/g")
+                create_file "$dir_path/${name_capitalized}Controller.java" "$content"
+                ;;
+            "services")
+                content=$(echo "$SERVICE_TEMPLATE" | sed "s/{name}/$name_capitalized/g")
+                create_file "$dir_path/${name_capitalized}Service.java" "$content"
+                ;;
+            "repository")
+                content=$(echo "$REPOSITORY_TEMPLATE" | sed "s/{name}/$name_capitalized/g")
+                create_file "$dir_path/${name_capitalized}Repository.java" "$content"
+                ;;
+            "models")
+                content=$(echo "$MODEL_TEMPLATE" | sed "s/{name}/$name_capitalized/g")
+                create_file "$dir_path/${name_capitalized}.java" "$content"
+                ;;
+            *)
+                echo "Unknown folder: $folder"
+                ;;
+        esac
+    done
+}
+
+# Main script starts here
+
+# Prompt user for component name
+read -p "Enter the name of the component: " component_name
+
+# Generate the component
+generate_component "$component_name"
