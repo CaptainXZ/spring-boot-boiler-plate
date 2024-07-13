@@ -124,7 +124,6 @@ generate_component() {
 }
 
 # Main script starts here
-
 # Prompt user for component name
 read -p "Enter the name of the component: " component_name
 
