@@ -22,11 +22,14 @@ CONTROLLER_TEMPLATE=$(cat <<END
 package com.example.demo.controllers;
 
 import org.springframework.web.bind.annotation.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import com.example.demo.services.{name}Service;
 
 @RestController
 @RequestMapping("/api/{name_lower}")
 public class {name}Controller {
-
+	@Autowired
+	private {name}Service {name_lower}Service;
     // Define your endpoints here
 
 }
@@ -38,9 +41,13 @@ SERVICE_TEMPLATE=$(cat <<END
 package com.example.demo.services;
 
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
+import com.example.demo.repository.{name}Repository;
 
 @Service
 public class {name}Service {
+	@Autowired
+	private {name}Repository {name_lower}Repository;
 
     // Define your service methods here
 
