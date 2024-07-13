@@ -73,11 +73,17 @@ import lombok.Getter;
 import lombok.Setter;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
-import java.util.UUID;
+import org.springframework.validation.annotation.Validated;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+
 
 @Entity
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Validated
 public class {name} {
 
     @Id
