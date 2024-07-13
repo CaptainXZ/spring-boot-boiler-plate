@@ -35,7 +35,7 @@ END
 
 # Template for service
 SERVICE_TEMPLATE=$(cat <<END
-package com.yourcompany.yourproject.services;
+package com.example.demo.services;
 
 import org.springframework.stereotype.Service;
 
@@ -50,11 +50,11 @@ END
 
 # Template for repository
 REPOSITORY_TEMPLATE=$(cat <<END
-package com.yourcompany.yourproject.repository;
+package com.example.demo.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-import com.yourcompany.yourproject.models.{name};
+import com.example.demo.models.{name};
 
 @Repository
 public interface {name}Repository extends JpaRepository<{name}, String> {
@@ -67,7 +67,7 @@ END
 
 # Template for model
 MODEL_TEMPLATE=$(cat <<END
-package com.yourcompany.yourproject.models;
+package com.example.demo.models;
 
 import lombok.Getter;
 import lombok.Setter;
