@@ -81,7 +81,7 @@ import java.util.UUID;
 public class {name} {
 
     @Id
-    private UUID id;
+    private String id;
 
     // Define your fields here
 
